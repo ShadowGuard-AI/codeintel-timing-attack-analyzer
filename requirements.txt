@@ -1,4 +1,4 @@
-bandit>=1.0.0
-flake8>=1.0.0
-pylint>=1.0.0
-pyre-check>=1.0.0
+# Nothing third party: instrumentation is built with the standard
+# library ast module and runs under sys.executable. bandit, flake8,
+# pylint and pyre-check were listed here before; the analysis does
+# not run them (see --dependency_check, which only probes for them).

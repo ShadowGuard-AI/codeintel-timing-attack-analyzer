@@ -1,7 +1,7 @@
 ![Banner](banner.png)
 
 # codeintel-Timing-Attack-Analyzer
-Identifies potential timing attack vulnerabilities by analyzing the execution time of code blocks. This could be implemented by instrumenting code with timing measurements and identifying code blocks where the execution time is correlated with secret data. - Focused on Tools for static code analysis, vulnerability scanning, and code quality assurance
+Instruments each function in a Python file with timing prints, runs the instrumented file a chosen number of times, and collects the printed timings in an output file. It computes no vulnerability verdict and no correlation with secret data; the threshold option is validated but not applied to the results. - Focused on Tools for static code analysis, vulnerability scanning, and code quality assurance
 
 ## Install
 `git clone https://github.com/ShadowGuardAI/codeintel-timing-attack-analyzer`

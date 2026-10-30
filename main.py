@@ -31,6 +31,9 @@ def check_dependencies():
     Returns:
         bool: True if all dependencies are installed, False otherwise.
     """
+    # Probed only because the flag exists. The timing run never
+    # invokes any of these, so a missing one says nothing about
+    # whether an analysis can run.
     dependencies = ["bandit", "flake8", "pylint", "pyre-check"]
     missing_dependencies = []
     for dep in dependencies:
@@ -52,8 +55,12 @@ def check_dependencies():
 
 def instrument_code(filename):
   """
-  Instruments the code with timing measurements.  This is a simplified example.
-  A real-world implementation would need to be more sophisticated and targeted.
+  Instruments the code with timing measurements.
+
+  Each function body is wrapped so a start stamp is taken on entry
+  and the elapsed time is printed from a finally block. The finally
+  matters: a plain append at the end of the body never runs for a
+  function that returns early, which is most functions worth timing.
 
   Args:
     filename (str): The name of the Python file to instrument.
@@ -71,59 +78,50 @@ def instrument_code(filename):
     logging.error(f"Error reading file: {e}")
     return None
 
-  # A very simplistic instrumentation: add timing around function definitions
-  tree = ast.parse(code)
-  
-  # Create a visitor to add timing statements around function definitions.
+  try:
+    tree = ast.parse(code)
+  except SyntaxError as e:
+    # A target that does not parse cannot be instrumented. Returning
+    # None lets main exit 1 with this message instead of a traceback.
+    logging.error(f"Cannot parse {filename}: {e}")
+    return None
+
+  def time_call():
+      # time.time(), spelled as an attribute call. The first version
+      # built a call to the bare name time, which is the module, so
+      # every instrumented function died with "module object is not
+      # callable" before its own body ran.
+      return ast.Call(func=ast.Attribute(value=ast.Name(id='time', ctx=ast.Load()), attr='time', ctx=ast.Load()), args=[], keywords=[])
+
   class TimingVisitor(ast.NodeTransformer):
       def visit_FunctionDef(self, node):
-          # Create timing statements.
-          start_time = ast.Assign(
-              targets=[ast.Name(id='start_time', ctx=ast.Store())],
-              value=ast.Call(func=ast.Name(id='time', ctx=ast.Load()), args=[], keywords=[])
-          )
-          start_time.targets[0].annotation = None # Remove annotation, avoids SyntaxError
-
-          end_time = ast.Assign(
-              targets=[ast.Name(id='end_time', ctx=ast.Store())],
-              value=ast.Call(func=ast.Name(id='time', ctx=ast.Load()), args=[], keywords=[])
-          )
-          end_time.targets[0].annotation = None  # Remove annotation, avoids SyntaxError
-
-          duration = ast.Assign(
-              targets=[ast.Name(id='duration', ctx=ast.Store())],
-              value=ast.BinOp(left=ast.Name(id='end_time', ctx=ast.Load()), op=ast.Sub(), right=ast.Name(id='start_time', ctx=ast.Load()))
-          )
-          duration.targets[0].annotation = None # Remove annotation, avoids SyntaxError
-
-          # Create a print statement.
-          print_statement = ast.Expr(
-              value=ast.Call(
-                  func=ast.Attribute(value=ast.Name(id='print', ctx=ast.Load()), attr='print', ctx=ast.Load()),
-                  args=[ast.Str(s=f"Function {node.name} took: "), ast.Name(id='duration', ctx=ast.Load())],
-                  keywords=[]
-              )
-          )
-
-
-          # Insert the timing and print statements at the beginning of the function body.
-          node.body.insert(0, print_statement)  # Insert AFTER the docstring, if any.
-          node.body.insert(0, duration)
-          node.body.insert(0, end_time)
-          node.body.insert(0, start_time)
-          
+          self.generic_visit(node)
+          # Underscore names: a target that already uses start_time
+          # or duration for its own logic must not be overwritten.
+          start = ast.Assign(targets=[ast.Name(id='_sg_start', ctx=ast.Store())], value=time_call())
+          report = [
+              ast.Assign(targets=[ast.Name(id='_sg_duration', ctx=ast.Store())],
+                         value=ast.BinOp(left=time_call(), op=ast.Sub(), right=ast.Name(id='_sg_start', ctx=ast.Load()))),
+              ast.Expr(value=ast.Call(func=ast.Name(id='print', ctx=ast.Load()),
+                                      args=[ast.Constant(value=f"Function {node.name} took: "), ast.Name(id='_sg_duration', ctx=ast.Load())],
+                                      keywords=[])),
+          ]
+          body = node.body
+          prefix = []
+          # A docstring has to stay first or it stops being one.
+          if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) and isinstance(body[0].value.value, str):
+              prefix, body = body[:1], body[1:]
+          node.body = prefix + [start, ast.Try(body=body, handlers=[], orelse=[], finalbody=report)]
           return node
-  
-  # Apply the visitor.
+
   instrumented_tree = TimingVisitor().visit(tree)
   ast.fix_missing_locations(instrumented_tree)
   instrumented_code = ast.unparse(instrumented_tree)
-  
-  
+
   instrumented_filename = f"{os.path.splitext(filename)[0]}_instrumented.py"
   try:
       with open(instrumented_filename, "w") as f:
-          f.write("import time\n") # Import time module
+          f.write("import time\n")
           f.write(instrumented_code)
       logging.info(f"Instrumented code written to {instrumented_filename}")
       return instrumented_filename
@@ -135,11 +133,11 @@ def run_analysis(instrumented_file, iterations, threshold, output_file):
     """
     Runs the timing analysis on the instrumented code.
 
-    Args:
-        instrumented_file (str): The path to the instrumented Python file.
-        iterations (int): The number of iterations to run.
-        threshold (float): The threshold for timing differences.
-        output_file (str): The file to write the output to.
+    The output file collects whatever the instrumented program
+    prints, per iteration. The threshold argument is accepted and
+    validated by main, but no verdict is computed from it: nothing
+    here compares timings against it, and the log must not pretend
+    otherwise.
     """
 
     if not os.path.exists(instrumented_file):
@@ -150,19 +148,15 @@ def run_analysis(instrumented_file, iterations, threshold, output_file):
         with open(output_file, "w") as outfile:
             for i in range(iterations):
                 logging.info(f"Running iteration {i+1}/{iterations}")
-                try:
-                    subprocess.run(["python", instrumented_file], check=False, capture_output=True, text=True, stdout=outfile, stderr=subprocess.PIPE)
-                except subprocess.CalledProcessError as e:
-                     logging.error(f"Error during execution: {e}")
-                     logging.error(f"Stderr: {e.stderr}") # Log the stderr output from the process.
-                     return
-                except Exception as e:
-                    logging.error(f"Unexpected error during execution: {e}")
-                    return
-
+                # No capture_output here: combining it with an
+                # explicit stdout raises ValueError, which the old
+                # call hit on every iteration and then reported as
+                # an execution error, leaving an empty output file
+                # and a success exit.
+                result = subprocess.run([sys.executable, instrumented_file], stdout=outfile, stderr=subprocess.PIPE, text=True, check=False)
+                if result.returncode != 0:
+                    logging.error(f"Instrumented run exited {result.returncode}: {result.stderr.strip()}")
         logging.info(f"Analysis completed.  Results written to {output_file}")
-
-
     except Exception as e:
         logging.error(f"Error writing to output file: {e}")
 
