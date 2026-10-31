@@ -16,5 +16,8 @@ Instruments each function in a Python file with timing prints, runs the instrume
 - `--output`: No description provided
 - `--dependency_check`: No description provided
 
+## Exit code
+The number of failed iterations is logged on every run. If any iteration's instrumented run exits non-zero, the analysis exits 1 instead of reporting completion. A working target that runs cleanly on every iteration still completes at exit 0 with its results in the output file.
+
 ## License
 Copyright (c) ShadowGuardAI

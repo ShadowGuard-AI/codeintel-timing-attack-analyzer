@@ -138,12 +138,16 @@ def run_analysis(instrumented_file, iterations, threshold, output_file):
     validated by main, but no verdict is computed from it: nothing
     here compares timings against it, and the log must not pretend
     otherwise.
+
+    Returns:
+        int: How many iterations exited non-zero.
     """
 
     if not os.path.exists(instrumented_file):
         logging.error(f"Instrumented file not found: {instrumented_file}")
-        return
+        return iterations
 
+    failed = 0
     try:
         with open(output_file, "w") as outfile:
             for i in range(iterations):
@@ -155,10 +159,14 @@ def run_analysis(instrumented_file, iterations, threshold, output_file):
                 # and a success exit.
                 result = subprocess.run([sys.executable, instrumented_file], stdout=outfile, stderr=subprocess.PIPE, text=True, check=False)
                 if result.returncode != 0:
+                    failed += 1
                     logging.error(f"Instrumented run exited {result.returncode}: {result.stderr.strip()}")
         logging.info(f"Analysis completed.  Results written to {output_file}")
     except Exception as e:
         logging.error(f"Error writing to output file: {e}")
+        return iterations
+    logging.info(f"Failed iterations: {failed} of {iterations}")
+    return failed
 
 
 def main():
@@ -197,7 +205,14 @@ def main():
         sys.exit(1)
 
     # Run the analysis
-    run_analysis(instrumented_file, args.iterations, args.threshold, args.output)
+    failed = run_analysis(instrumented_file, args.iterations, args.threshold, args.output)
+
+    if failed:
+        # Iterations whose instrumented run exited non-zero did not
+        # produce timings. Reporting the run as completed at exit 0
+        # would hide that the target never ran successfully.
+        logging.error(f"Timing attack analysis failed: {failed} of {args.iterations} iterations failed.")
+        sys.exit(1)
 
     logging.info("Timing attack analysis completed.")
 
