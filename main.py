@@ -94,6 +94,9 @@ def instrument_code(filename):
       return ast.Call(func=ast.Attribute(value=ast.Name(id='time', ctx=ast.Load()), attr='time', ctx=ast.Load()), args=[], keywords=[])
 
   class TimingVisitor(ast.NodeTransformer):
+      # I wrap nested functions as well, because generic_visit runs
+      # first. A nested call is then timed once for itself and again
+      # as part of its outer function's elapsed time.
       def visit_FunctionDef(self, node):
           self.generic_visit(node)
           # Underscore names: a target that already uses start_time
@@ -118,6 +121,9 @@ def instrument_code(filename):
   ast.fix_missing_locations(instrumented_tree)
   instrumented_code = ast.unparse(instrumented_tree)
 
+  # I write the copy beside the original, with a name built from
+  # it. A file that already exists with that name is overwritten,
+  # and a read only directory makes the whole run fail here.
   instrumented_filename = f"{os.path.splitext(filename)[0]}_instrumented.py"
   try:
       with open(instrumented_filename, "w") as f:
@@ -157,6 +163,9 @@ def run_analysis(instrumented_file, iterations, threshold, output_file):
                 # call hit on every iteration and then reported as
                 # an execution error, leaving an empty output file
                 # and a success exit.
+                # I run the copy with no arguments and no input. A target that
+                # expects command line arguments fails every iteration, and
+                # that is counted as failed runs, not as timing data.
                 result = subprocess.run([sys.executable, instrumented_file], stdout=outfile, stderr=subprocess.PIPE, text=True, check=False)
                 if result.returncode != 0:
                     failed += 1
