@@ -3,80 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>codeintel-timing-attack-analyzer: The Lecture Bottle of Leyden Jars</title>
-<style>@font-face{font-family:'Betania Patmos In GDL';src:url('fonts/BetaniaPatmosInGDL.ttf') format('truetype');}@font-face{font-family:'Barlow';src:url('fonts/Barlow.ttf') format('truetype');}
-:root{--ground:#f2ecd8;--panel:#d9dde2;--head:#2b3a67;--ink:#191b20;--red:#b2221c}
-*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font-family:'Barlow',sans-serif;line-height:1.65}
-h1,h2,h3{font-family:'Betania Patmos In GDL',serif;color:var(--head)}
+<title>codeintel-timing-attack-analyzer: The Chronometer Rating Bench</title>
+<style>@font-face{font-family:'Texturina';src:url('fonts/Texturina.ttf') format('truetype');font-weight:400;font-style:normal;}@font-face{font-family:'News Cycle';src:url('fonts/NewsCycle.ttf') format('truetype');font-weight:400;font-style:normal;}@font-face{font-family:'News Cycle';src:url('fonts/NewsCycle-Bold.ttf') format('truetype');font-weight:700;font-style:normal;}
+:root{--ground:#241a12;--panel:#37281c;--head:#f3e9d2;--ink:#efe6d4;--accent:#c9a35f}
+*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font-family:'News Cycle',sans-serif;line-height:1.65}
+h1,h2,h3{font-family:'Texturina',serif;color:var(--head)}
 .hero img.heroimg{width:100%;height:52vh;object-fit:cover;display:block}
 .hero .in,main,footer{max-width:1120px;margin:0 auto;padding:1rem 6vw 2rem}.logo{width:210px}
 nav{display:flex;gap:1rem;flex-wrap:wrap;margin:1.2rem 0}
-.btn{display:inline-block;text-decoration:none;font-family:'Betania Patmos In GDL',serif;color:var(--head);background:#e8eaee;border:2px solid #96783c;border-radius:8px;padding:.75rem 1.2rem}
-.btn:hover{box-shadow:inset 0 -4px 0 var(--head)}.btn:active{transform:translateY(2px)}.btn:focus-visible{outline:3px double var(--red);outline-offset:3px}
-a{color:var(--head)}.panel{background:var(--panel);color:var(--ink);padding:.4rem 1.5rem 1.3rem;margin:1.8rem 0}
-pre{background:#191b20;color:#f4f2ea;padding:1rem;overflow-x:auto;white-space:pre-wrap}
-.note{background:#faf7ee;color:var(--head);padding:.6rem 1rem;margin:1rem 0;border:1px solid #a8aeb4}
-.fail{color:var(--red);font-weight:700}</style>
+.btn{display:inline-block;text-decoration:none;font-family:'Texturina',serif;color:var(--head);background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:.6rem 1.1rem}
+.btn:hover{border-color:var(--head)}.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--head)}.panel{background:var(--panel);color:var(--ink);padding:.4rem 1.5rem 1.3rem;margin:1.8rem 0;border-radius:6px}
+pre{background:#1a120b;color:var(--ink);padding:1rem;overflow-x:auto;white-space:pre-wrap}
+.flag{border-left:5px solid var(--accent);background:rgba(0,0,0,.18);padding:.6rem 1rem}
+img.rule{width:100%;height:120px;object-fit:cover;display:block}img.diag{max-width:100%}
+code{font-family:inherit;background:rgba(0,0,0,.25);padding:0 .3rem;border-radius:3px}</style>
 </head>
 <body>
-
-<header class="hero"><img class="heroimg" src="intro-banner.png" alt="Bench before the lecture: hammer and folded cloth near, the forward jar with microscopes and flasks in the middle, charts under glass and a shelf of jars far, one warm lamp, no lettering anywhere">
-<div class="in"><img class="logo" src="logo.png" alt="One Leyden jar centred on a bench card, foil within and without, brass rod through the cork, chain beads at the tip, one bead in lamp red, the name lettered below in specimen label style">
+<header class="hero"><img class="heroimg" src="intro-banner.png" alt="Hands winding one chronometer with its brass key close up, the gimbal bowl in its box, other chronometers in their boxes soft behind">
+<div class="in"><img class="logo" src="logo.png" alt="One marine chronometer in its open mahogany gimbal box, its pale dial plain, brass bowl and glass catching the light">
 <h1>codeintel-timing-attack-analyzer</h1>
-<p>Page as a bench log. Read top to bottom. Lamp red marks a failed run and nothing else.</p>
-<nav>
-<a class="btn" href="#usage">Instrument and Run</a><a class="btn" href="#params">Set the Iteration Count</a><a class="btn" href="#params">Set the Threshold</a><a class="btn" href="#params">Choose the Output File</a><a class="btn" href="#params">Check the Four Named Tools</a><a class="btn" href="#params">Show Help</a>
-</nav></div></header>
+<p>Instruments run side by side, again and again, and only their rates are written down. No judgement is made at the end of it.</p>
+<nav><a class="btn" href="#how">How a run proceeds</a><a class="btn" href="#never">What it never does</a><a class="btn" href="#params">Parameters</a><a class="btn" href="#exits">Exit codes</a></nav></div></header>
 <main>
-<section class="panel"><h2>What This Bench Does</h2>
-<p>The tool instruments each function in a Python file with timing prints. It runs the instrumented file a chosen number of times. It collects the printed timings in an output file.</p>
-</section>
-<section class="panel"><h2>What It Does Not Decide</h2>
-<p>It computes no vulnerability verdict. It computes no correlation with secret data. The threshold option is validated. It is not applied to the results. The README says this. The code confirms it.</p>
-<div class="note"><h3>Threshold Is Checked, Not Applied</h3><p>The threshold value is checked and must lie from 0 to 1 inclusive. No result is compared against it.</p></div>
-</section>
-<section class="panel"><h2>Install</h2>
-<pre>git clone https://github.com/ShadowGuardAI/codeintel-timing-attack-analyzer</pre>
-<div class="note"><p>Bench note: this address uses the unhyphenated name ShadowGuardAI. The correct organisation is ShadowGuard-AI. The line is shown as printed and is not corrected in the line. The README gives no next step: no directory change follows and no dependency install follows.</p></div>
-</section>
-<section class="panel" id="usage"><h2>Usage</h2>
-<pre>./codeintel-timing-attack-analyzer [params]</pre>
-<p>That line is a placeholder. It is not an accepted invocation. The invocation the parser accepts, taken from main.py, is:</p>
-<pre>python3 main.py TARGET_FILE [--iterations N] [--threshold T] [--output FILE] [--dependency_check]</pre>
-</section>
-<section class="panel" id="params"><h2>The Missing Positional</h2>
-<div class="note"><p>Restored entry: target_file. It is required. It is positional. It gives the Python file to analyse. The README omits it entirely. The restoration lives on this page and is marked as restored.</p></div>
-<h2>Four Options With No Descriptions</h2>
+<img class="rule" src="banner.png" alt="A row of marine chronometers in their open boxes along a watchmaker bench, a watchmaker with a loupe passing along the row, a closed book at the bench end and winding keys laid in a line">
+<section class="panel"><h2>What the analyzer does</h2>
+<p>The tool rewrites a target Python file with timing instrumentation and runs the copy again and again, run as <code>python3 main.py TARGET_FILE [--iterations N] [--threshold T] [--output FILE] [--dependency_check]</code>. Every function in the target is wrapped so a start stamp is taken on entry and the elapsed time is printed from a finally block. Whatever the copy prints collects in the output file, whose default is timing_analysis.log. The default count is 100 runs.</p></section><section class="panel" id="never"><h2>What it never does</h2>
+<p class="flag">The tool never computes a verdict. The threshold is validated to lie from 0 to 1 and then never applied to anything: no timing is compared against it, no correlation with secret data exists anywhere in the code, and no vulnerability is identified. The GitHub description claim to identify timing attack vulnerabilities overstates a stopwatch.</p></section><section class="panel" id="how"><h2>How a run proceeds</h2>
+<p>The instrumented copy is written beside the original under a name built from it, overwriting any file already there. Nested functions are double-counted: a nested call is timed once for itself and again inside its outer function's elapsed time. The copy runs with no arguments and no input.</p>
+<p class="flag">A target that expects command line arguments fails every iteration. Any iteration whose run exits non-zero makes the whole analysis exit 1, and those runs are counted as failed runs, not as timing data.</p></section><section class="panel"><h2>The dependency check</h2>
+<p>The dependency check probes for bandit, flake8, pylint, and pyre-check and exits 1 when one is missing, though the timing run never invokes any of them.</p></section><section class="panel" id="params"><h2>Parameters</h2>
 <ul>
-<li><code>-h</code>: shows help and exits.</li>
-<li><code>--iterations</code>: No description provided. Parser fact: number of iterations to run. Default 100.</li>
-<li><code>--threshold</code>: No description provided. Parser fact: threshold for timing difference, as a percentage, to flag as a potential vulnerability. Default 0.05. Code fact: the value is checked, must lie from 0 to 1 inclusive, and is not applied in the analysis.</li>
-<li><code>--output</code>: No description provided. Parser fact: output file for timing results. Default timing_analysis.log.</li>
-<li><code>--dependency_check</code>: No description provided. Parser fact: a flag which checks whether bandit, flake8, pylint, and pyre-check are installed. Code fact: the timing run uses none of those four tools; a missing one blocks the run only when this flag is passed.</li>
+<li><code>target_file</code>: the Python file to analyse. Required and positional.</li>
+<li><code>--iterations</code>: how many times the instrumented copy runs (default 100).</li>
+<li><code>--threshold</code>: validated from 0 to 1 (default 0.05), then never applied.</li>
+<li><code>--output</code>: output file (default timing_analysis.log).</li>
+<li><code>--dependency_check</code>: probe for the four tools named above.</li>
 </ul>
-</section>
-<section class="panel"><h2>Method, Step by Step</h2>
-<ol>
-<li>Read the target file.</li>
-<li>Parse it with the abstract syntax tree. A file that does not parse ends the run at exit 1.</li>
-<li>Wrap each function. Nested functions are wrapped too. A start stamp is taken on entry and elapsed time prints from a finally block, so early returns are timed.</li>
-<li>Write the copy beside the original. Its name adds _instrumented before the ending. An existing copy is overwritten.</li>
-<li>Run the copy with no arguments and no input, for the chosen iteration count.</li>
-<li>Collect all printed output in the output file.</li>
-</ol>
-<div class="note"><h3>A Target That Needs Arguments Will Fail Every Run</h3><p>A target that expects arguments fails each run. Those failures count as failed iterations. They do not count as timing data.</p></div>
-</section>
-<section class="panel"><h2>Exit Code</h2>
-<p>The number of failed iterations is logged on every run. If any iteration exits non zero, the analysis exits 1 and does not report completion. A target that runs cleanly on every iteration completes at exit 0, with its results in the output file.</p>
-<p>Earlier exits from the code: missing target file, exit 1. Iterations at or below zero, exit 1. Threshold outside 0 to 1, exit 1. Failed dependency check, exit 1. Failed instrumentation, exit 1.</p>
-<p class="fail">A failed run is the one thing lamp red marks on this page.</p>
-</section>
+<p>The README parameter list omits target_file and leaves the four options undescribed, though the code help text describes them. That record stands as printed.</p></section><section class="panel" id="exits"><h2>Exit codes</h2>
+<p>The number of failed iterations is logged on every run. If any iteration exits non-zero, the analysis exits 1. A target that runs cleanly on every iteration completes at exit 0 with its timings in the output file.</p></section><section class="panel"><h2>Record notes</h2>
+<p>The README clone line uses the unhyphenated ShadowGuardAI and its usage line is a placeholder; the closing licence line reads Copyright (c) ShadowGuardAI while the LICENSE file is MIT. Those lines stand as printed and are not reconciled silently.</p></section>
+<section class="panel"><h2>Diagrams</h2><p><img class="diag" src="assets/architecture.png" alt="Architecture diagram"></p><p><img class="diag" src="assets/flowchart.png" alt="Flowchart diagram"></p><p><img class="diag" src="assets/product-map.png" alt="Product map diagram"></p></section>
 <section class="panel"><h2>Licence</h2>
-<pre>Copyright (c) ShadowGuardAI</pre>
-<div class="note"><p>The README licence line is shown as it stands, with the same unhyphenated name. The LICENSE file in the repository carries the MIT License. Both facts are shown. They are not reconciled silently.</p></div>
-</section>
+<p>The repository LICENSE file carries the MIT License.</p></section>
 </main>
-<footer><p>The Lecture Bottle of Leyden Jars. Headings in Betania Patmos In GDL, text in Barlow, both under the SIL Open Font License 1.1.</p></footer>
-
+<footer><p>The Chronometer Rating Bench. Headings in Texturina, text in News Cycle, both under the SIL Open Font License 1.1.</p></footer>
 </body>
 </html>

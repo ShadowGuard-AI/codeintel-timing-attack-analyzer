@@ -1,12 +1,12 @@
-![Bench before the lecture: bench edge, a fossil hammer lying flat and a folded cloth near, the forward jar with microscopes and flasks in the middle, charts under glass and a shelf of jars far, one warm lamp, no lettering anywhere](intro-banner.png)
+![Hands winding one chronometer with its brass key close up, the gimbal bowl in its box, other chronometers in their boxes soft behind](intro-banner.png)
 
 # codeintel-Timing-Attack-Analyzer
 
 Title block: the name above is set in Betania Patmos In GDL in star chart indigo on a paper plate in specimen label style, with a ruled line below and a small jar at the left, beside this first heading only. Headings after this stay typographic.
 
-![One Leyden jar centred on a bench card, foil within and without, brass rod through the cork, chain beads at the tip, one bead only in lamp red, the name lettered below in specimen label style](logo.png)
+![One marine chronometer in its open mahogany gimbal box, its pale dial plain, brass bowl and glass catching the light](logo.png)
 
-![The lecture bench full width: a row of jars at the back, one jar forward and largest with the name on its tag, brass microscopes to its left, flasks to its right, hammers flat on a cloth, charts under glass at the bench end](banner.png)
+![A row of marine chronometers in their open boxes along a watchmaker bench, a watchmaker with a loupe passing along the row, a closed book at the bench end and winding keys laid in a line](banner.png)
 
 ![The bench at work in three bands: shelf and charts still, one jar whose charge bead brightens slowly and fades while its tag swings a little, a flask and a fossil hammer fixed at the bench edge](scene.svg)
 
